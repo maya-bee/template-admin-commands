@@ -1,7 +1,7 @@
 --[[
 
 
-                 _____ _____ __  __ ____  _        _  _____ _____      _    ____  __  __ ___ _   _ 
+                 _____ _____ __  __ ____  _        _  _____ _____      _    ____  __  __ ___ _   _
                 |_   _| ____|  \/  |  _ \| |      / \|_   _| ____|    / \  |  _ \|  \/  |_ _| \ | |
                   | | |  _| | |\/| | |_) | |     / _ \ | | |  _|     / _ \ | | | | |\/| || ||  \| |
                   | | | |___| |  | |  __/| |___ / ___ \| | | |___   / ___ \| |_| | |  | || || |\  |
@@ -22,7 +22,7 @@
 TemplateAdmin.Prefix = ";" -- This can be anything EXCEPT if it starts with "/e", as that is reserved for hiding commands.
 
 TemplateAdmin.Owners = { -- Put the username of anyone you want to have owner permissions.
-    "Roblox",
+    "Maya70i",
     "Builderman",
 }
 
@@ -36,6 +36,7 @@ TemplateAdmin.Mods = { -- Put the username of anyone you want to have mod permis
     "Builderman",
 }
 
+TemplateAdmin.AutoRankVisitor = true -- Should we automatically rank players Visitor?
 
 -- THAT'S ALL! The point of this module is that you build your administrator commands system on top of this with 
 -- our powerful API. Check out our developer forum post here:

@@ -3,6 +3,7 @@ local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 m.PermissionLevel = {
+	Custom = 0;
 	Visitor = 1;
 	Mod = 2;
 	Admin = 3;
@@ -10,12 +11,14 @@ m.PermissionLevel = {
 }
 
 m.Arguments = {
-	Username = 0;
-	UserId = 1;
-	Number = 2;
-	Text = 3;
-	Boolean = 4;
-	Any = 5;
+	UsernameInGame = 0;
+	DisplayNameInGame = 1;
+	Username = 2;
+	UserId = 3;
+	Number = 4;
+	Text = 5;
+	Boolean = 6;
+	Any = 7;
 }
 
 m.Necessity = {
@@ -42,9 +45,11 @@ function m.Initialize()
 		Initialized = true
 		for _, command in ipairs(script.Parent.Commands:GetChildren()) do
 			local LoadedCommand = require(command)
-			CompiledCommands[command.Name] = LoadedCommand
-			for _, alias in ipairs(LoadedCommand.Aliases) do
-				CompiledCommands[alias] = LoadedCommand
+			if LoadedCommand.Active then
+				CompiledCommands[LoadedCommand.Name] = LoadedCommand
+				for _, alias in ipairs(LoadedCommand.Aliases) do
+					CompiledCommands[alias] = LoadedCommand
+				end
 			end
 		end
 	end
