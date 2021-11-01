@@ -2,12 +2,11 @@
   "name": "template-admin-commands",
   "tree": {
     "$className": "DataModel",
-
     "ReplicatedStorage": {
       "$ignoreUnknownInstances": true,
-      "$className": "ReplicatedStorage"
+      "$className": "ReplicatedStorage",
+      "$path": "ReplicatedStorage"
     },
-
     "ServerScriptService": {
       "$ignoreUnknownInstances": true,
       "$className": "ServerScriptService",

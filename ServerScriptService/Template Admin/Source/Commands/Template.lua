@@ -52,6 +52,7 @@ end
 
 -- Whenever we check to see if the speaker is allowed to run this command, the below function will fire.
 -- THE BELOW FUNCTION WILL ONLY FIRE IF command.PermissionLevel IS SET TO CUSTOM!!!!!
+-- **IT MUST RETURN A BOOLEAN VALUE! THIS DECIDES IF THE USER IS ALLOWED TO USE THE COMMAND.**
 command.OnPermissionCheck = function (speaker, speakerPermissionLevel)
     print("The speaker (" .. speaker.Name .. ") had the permission level of " .. speakerPermissionLevel)
 end
