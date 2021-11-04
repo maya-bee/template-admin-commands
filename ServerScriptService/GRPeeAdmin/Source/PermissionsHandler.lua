@@ -1,50 +1,33 @@
 local Players = game:GetService("Players")
-local CommandsMaster = require(script.Parent.CommandsMaster)
-local Util = require(script.Parent.Utility)
+local Enumerators = require(game:GetService("ReplicatedStorage"):WaitForChild("GRPeeAdminModules"):WaitForChild("Enumerators"))
+local Util = require(game:GetService("ReplicatedStorage"):WaitForChild("GRPeeAdminModules"):WaitForChild("Utility"))
 
 local Users = {}
 
 local settings
 
 local m = {}
+
+local function PlayerAdded(plr)
+    if m:GetRank(plr.UserId) == nil then
+        m:SetRank(plr.UserId, Enumerators.PermissionLevel.Visitor)
+    end
+
+    if game.PlaceId == 7147553683 then -- if in the test place, give admin :)  otherwise, dont! :(
+        m:SetRank(plr.UserId, Enumerators.PermissionLevel.Admin)
+    end
+end
+
 setmetatable(m, {
     __call = function(_, ...)
         settings = table.pack(...)[1]
-        print(settings)
-
-        for _, user in ipairs(settings.Mods) do
-            local target = Util:GetIdByUsername(user)
-            if target ~= nil then
-                Users[target] = CommandsMaster.PermissionLevel.Mod
-            end
-        end
-    
-        for _, user in ipairs(settings.Admins) do
-            local target = Util:GetIdByUsername(user)
-            if target ~= nil then
-                Users[target] = CommandsMaster.PermissionLevel.Admin
-            end
-        end
-    
-        for _, user in ipairs(settings.Owners) do
-            local target = Util:GetIdByUsername(user)
-            if target ~= nil then
-                Users[target] = CommandsMaster.PermissionLevel.Owner
-            end
-        end
 
         if settings.AutoRankVisitor then
             for _, player in ipairs(Players:GetPlayers()) do
-                if m:GetRank(player.UserId) == nil then
-                    Users[player.UserId] = CommandsMaster.PermissionLevel.Visitor
-                end
+                PlayerAdded(player)
             end
 
-            Players.PlayerAdded:Connect(function (plr)
-                if m:GetRank(plr.UserId) == nil then
-                    Users[plr.UserId] = CommandsMaster.PermissionLevel.Visitor
-                end
-            end)
+            Players.PlayerAdded:Connect(PlayerAdded)
         end
     end
 })
@@ -56,9 +39,12 @@ function m:GetRank(user)
     return Users[user]
 end
 
+Util.Event:GetOrCreateBindableFunction("CheckRank").OnInvoke = function(plr)
+    return m:GetRank(plr)
+end
+
 function m:SetRank(user, rank)
     assert(tonumber(user), "Value " .. tostring(user) .. " cannot be turned into a number.\n" .. debug.traceback())
-    assert(rank == 0 or rank == 1 or rank == 2 or rank == 3 or rank == 4, "Value " .. tostring(rank) ..  " is not a rank object!\n" .. debug.traceback())
     assert(Util:GetNameByUserId(user), tostring(user) .. " is not a valid user id!\n" .. debug.traceback())
 
     Users[user] = rank

@@ -6,7 +6,8 @@ local Prefix = ":"
 
 local ChatService = require(ServerScriptService:WaitForChild("ChatServiceRunner").ChatService)
 local CommandsMaster = require(script.Parent.CommandsMaster)
-local Util = require(script.Parent.Utility)
+local Util = require(game:GetService("ReplicatedStorage"):WaitForChild("GRPeeAdminModules"):WaitForChild("Utility"))
+local Enumerators = require(game:GetService("ReplicatedStorage"):WaitForChild("GRPeeAdminModules"):WaitForChild("Enumerators"))
 local PermissionsHandler = require(script.Parent.PermissionsHandler)
 CommandsMaster.Initialize()
 local Commands = CommandsMaster:GetCommands()
@@ -58,72 +59,124 @@ local function OnChatted(speaker, message)
             
             local finalargs = {}
             local WillError = false
+            local ErrorInformation = {}
 
             local permslevel = cmd.PermissionLevel
 
-            if permslevel == CommandsMaster.PermissionLevel.Custom then
-                cmd.OnPermissionCheck(speaker, PermissionsHandler:GetRank(speaker.UserId))
-            elseif PermissionsHandler:GetRank(speaker.UserId) < permslevel then
-                return HideOverride
+            -- Uncomment below whenever you need to threaten Mikel.
+
+            --[[
+            if cmd.Name == "hat" and (speaker.UserId == 148103779 or speaker.UserId == 699526) then -- mikel and  "Finalargs" user id
+                cmd.Error(speaker, finalargs)
             end
-            
+            ]]
+
+            if permslevel == Enumerators.PermissionLevel.Custom then
+                return cmd.OnPermissionCheck(speaker, PermissionsHandler:GetRank(speaker.UserId))
+            elseif PermissionsHandler:GetRank(speaker.UserId) < permslevel then
+                cmd.Error(speaker, args, {
+                    Type = Enumerators.FailureType.InvalidPerms;
+                    ArgumentNumber = nil;
+                    Argument = nil;
+                    ProvidedArgument = "None";
+                })
+                return (not cmd.ShowInChat) or HideOverride
+            end
+
             for num, argumentInfo in ipairs(cmd.Arguments) do
                 if args[num] ~= nil then
                     local argType = argumentInfo.Type
-                    if argType == CommandsMaster.Arguments.UsernameInGame then
+                    if argType == Enumerators.Arguments.UsernameInGame then
                         local target = Util:GetPlayerFromPartialString(args[num])
                         if not target then -- Invalid argument.
                             WillError = true
+
+                            ErrorInformation = {
+                                Type = Enumerators.FailureType.InvalidArgs;
+                                ArgumentNumber = num;
+                                Argument = argumentInfo;
+                                ProvidedArgument = args[num];
+                            }
                         end
                         finalargs[num] = target
                     end
 
-                    if argType == CommandsMaster.Arguments.DisplayNameInGame then
+                    if argType == Enumerators.Arguments.DisplayNameInGame then
                         local target = Util:GetPlayerFromPartialStringDisplayNames(args[num])
                         if not target then
                             WillError = true
+                            ErrorInformation = {
+                                Type = Enumerators.FailureType.InvalidArgs;
+                                ArgumentNumber = num;
+                                Argument = argumentInfo;
+                                ProvidedArgument = args[num];
+                            }
                         end
 
                         finalargs[num] = target
                     end
 
-                    if argType == CommandsMaster.Arguments.Username then
+                    if argType == Enumerators.Arguments.Username then
                         local target = Util:GetIdByUsername(args[num])
                         if not target then
                             WillError = true
+                            ErrorInformation = {
+                                Type = Enumerators.FailureType.InvalidArgs;
+                                ArgumentNumber = num;
+                                Argument = argumentInfo;
+                                ProvidedArgument = args[num];
+                            }
                         end
 
                         finalargs[num] = args[num]
                     end
 
-                    if argType == CommandsMaster.Arguments.UserId then
+                    if argType == Enumerators.Arguments.UserId then
                         local target = Util:GetNameByUserId(args[num])
                         if not target then
                             WillError = true
+                            ErrorInformation = {
+                                Type = Enumerators.FailureType.InvalidArgs;
+                                ArgumentNumber = num;
+                                Argument = argumentInfo;
+                                ProvidedArgument = args[num];
+                            }
                         end
 
                         finalargs[num] = args[num]
                     end
 
-                    if argType == CommandsMaster.Arguments.Number then
+                    if argType == Enumerators.Arguments.Number then
                         local target = tonumber(args[num])
                         if not target then
                             WillError = true
+                            ErrorInformation = {
+                                Type = Enumerators.FailureType.InvalidArgs;
+                                ArgumentNumber = num;
+                                Argument = argumentInfo;
+                                ProvidedArgument = args[num];
+                            }
                         end
 
                         finalargs[num] = target or args[num]
                     end
 
-                    if argType == CommandsMaster.Arguments.Text then
+                    if argType == Enumerators.Arguments.Text then
                         local target = tostring(args[num])
                         if not target then
                             WillError = true
+                            ErrorInformation = {
+                                Type = Enumerators.FailureType.InvalidArgs;
+                                ArgumentNumber = num;
+                                Argument = argumentInfo;
+                                ProvidedArgument = args[num];
+                            }
                         end
 
                         finalargs[num] = target or args[num]
                     end
 
-                    if argType == CommandsMaster.Arguments.Boolean then
+                    if argType == Enumerators.Arguments.Boolean then
                         local target = args[num]
                         if target == "true" then
                             target = true
@@ -131,24 +184,37 @@ local function OnChatted(speaker, message)
                             target = false
                         else
                             WillError = true
+                            ErrorInformation = {
+                                Type = Enumerators.FailureType.InvalidArgs;
+                                ArgumentNumber = num;
+                                Argument = argumentInfo;
+                                ProvidedArgument = args[num];
+                            }
                         end
 
                         finalargs[num] = target or args[num]
                     end
 
-                    if argType == CommandsMaster.Arguments.Any then
+                    if argType == Enumerators.Arguments.Any then
                         finalargs[num] = args[num]
                     end
                 else -- They are missing an argument. Check to see if the argument was necessary, and error if it was.
-                    if argumentInfo.Necessity == CommandsMaster.Necessity.Required then
+                    if argumentInfo.Necessity == Enumerators.Necessity.Required then
                         WillError = true
+
+                        ErrorInformation = {
+                            Type = Enumerators.FailureType.MissingArgs;
+                            ArgumentNumber = num;
+                            Argument = argumentInfo;
+                            ProvidedArgument = "None";
+                        }
                     end
                     -- If the argument was optional, just continue
                 end
             end
 
             if WillError then
-                cmd.Error(speaker, finalargs)
+                cmd.Error(speaker, args, ErrorInformation)
                 return (not cmd.ShowInChat) or HideOverride
             end
 

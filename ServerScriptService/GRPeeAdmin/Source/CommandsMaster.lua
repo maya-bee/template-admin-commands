@@ -1,30 +1,8 @@
 local m = {}
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local enums = require(ReplicatedStorage:WaitForChild("GRPeeAdminModules"):WaitForChild("Enumerators"))
 local ServerScriptService = game:GetService("ServerScriptService")
-
-m.PermissionLevel = {
-	Custom = -1;
-	Visitor = 100;
-	Mod = 200;
-	Admin = 300;
-	Owner = 400;
-}
-
-m.Arguments = {
-	UsernameInGame = 0;
-	DisplayNameInGame = 1;
-	Username = 2;
-	UserId = 3;
-	Number = 4;
-	Text = 5;
-	Boolean = 6;
-	Any = 7;
-}
-
-m.Necessity = {
-	Required = 0;
-	Optional = 1;
-}
 
 local CompiledCommands = {}
 local Initialized = false

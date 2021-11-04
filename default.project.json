@@ -11,6 +11,11 @@
       "$ignoreUnknownInstances": true,
       "$className": "ServerScriptService",
       "$path": "ServerScriptService"
+    },
+    "ServerStorage": {
+      "$ignoreUnknownInstances": true,
+      "$className": "ServerStorage",
+      "$path": "ServerStorage"
     }
   }
 }
