@@ -14,8 +14,17 @@ if not Sound then
 end
 
 s.UI = {}
+
 s.UI.Alert = {
     Id = "rbxassetid://7871668809";
+}
+
+s.UI.Fail = {
+    Id = "rbxassetid://7959023350";
+}
+
+s.UI.Success = {
+    Id = "rbxassetid://7959060011";
 }
 
 -- Makes each sound playable by calling :Play() or :Stop() on it
@@ -25,24 +34,12 @@ local function MakePlayableRecursive(table)
             if not v.Id then
                 MakePlayableRecursive(v)
             else
-                function v:Play(player)
-                    if RunService:IsServer() then
-                        Events:Fire("PlaySound", player, v.Id)
-                    else
-                        Sound.SoundId = v.Id
-                        if not Sound.IsLoaded then
-                            Sound.Loaded:Wait()
-                        end
-                        Sound:Play()
-                    end 
+                function v:Play(player, looped)
+                    s:Play(player, v.Id, looped)
                 end
 
                 function v:Stop(player)
-                    if RunService:IsServer() then
-                        Events:Fire("StopPlayingSound", player) 
-                    else
-                        Sound:Stop()
-                    end    
+                    s:Stop(player)   
                 end
             end
         end

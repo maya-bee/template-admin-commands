@@ -1,15 +1,19 @@
 local Players = game:GetService("Players")
 local plr = Players.LocalPlayer
+local pscripts = plr:WaitForChild("PlayerScripts")
+local pgui = plr:WaitForChild("PlayerGui")
 local ClientPack = script:WaitForChild("ClientPack")
 
 
 ClientPack.GRPeeStarterPlayer.Disabled = false
-ClientPack.GRPeeStarterPlayer.Parent = plr:WaitForChild("PlayerScripts")
+if not pscripts:FindFirstChild("GRPeeStarterPlayer") then
+    ClientPack.GRPeeStarterPlayer.Parent = pscripts
+end
 
-ClientPack.GRPeeUI.Disabled = false
-ClientPack.GRPeeUI.Parent = plr:WaitForChild("PlayerScripts")
+ClientPack.GRPeeUIHandler.Disabled = false
+if not pscripts:FindFirstChild("GRPeeUIHandler") then
+    ClientPack.GRPeeUIHandler.Parent = pscripts
+end
 
-script.GRPeeUI.Parent = plr:WaitForChild("PlayerGui")
-
-wait()
+task.wait()
 script:Destroy()

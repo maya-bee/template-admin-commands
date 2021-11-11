@@ -34,4 +34,15 @@ e.FailureType = {
     InvalidPerms = "You don't have permission to run this command!";
 }
 
+e.ArgStrings = {
+	[e.Arguments.UsernameInGame] = "Player";
+	[e.Arguments.DisplayNameInGame] = "Player";
+	[e.Arguments.Username] = "Username";
+	[e.Arguments.UserId] = "User Id";
+	[e.Arguments.Number] = "Number";
+	[e.Arguments.Text] = "Text";
+	[e.Arguments.Boolean] = "True/False";
+	[e.Arguments.Any] = "Any";
+}
+
 return e

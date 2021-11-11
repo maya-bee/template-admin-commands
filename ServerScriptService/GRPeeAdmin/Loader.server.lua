@@ -4,6 +4,7 @@ local Players = game:GetService("Players")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
+local StarterGui = game:GetService("StarterGui")
 local StarterPlayer = game:GetService("StarterPlayer")
 
 -- HANDLE SERVER STUFF
@@ -37,17 +38,23 @@ PermissionsHandler(Settings)
 
 require(stuff.Sounds)
 
--- HANDLE UI
+local starterplayer = script.Parent.Source.ClientPack.GRPeeStarterPlayer:Clone()
+starterplayer.Disabled = false
+starterplayer.Parent = StarterPlayer.StarterPlayerScripts
 
+local ui  = script.Parent.Source.UI.GRPeeUI:Clone()
+ui.Parent = StarterGui
 
+local uicode = script.Parent.Source.ClientPack.GRPeeUIHandler:Clone()
+uicode.Disabled = false
+uicode.Parent = StarterPlayer.StarterPlayerScripts
 
--- If you joined quick, none of this stuff will load. Below handles quick joiners.
+-- If you joined quick, only the UI out of all the client stuff will load. Below handles quick joiners.
 
 for _, plr in ipairs(Players:GetPlayers()) do
     local QuickJoiner = script.Parent.Source.ClientPack.QuickJoiner:Clone()
     local clone = script.Parent.Source.ClientPack:Clone()
     clone.QuickJoiner:Destroy()
     clone.Parent = QuickJoiner
-    script.Parent.Source.UI.GRPeeUI:Clone().Parent = QuickJoiner
     QuickJoiner.Parent = plr:WaitForChild("PlayerGui")
 end

@@ -97,14 +97,38 @@ function util.Event.new(name)
     return e
 end
 
+-- Get remote/bindable events/functions.
+function util.Event:Get(name)
+    return EventFolder:WaitForChild(name)
+end
+
+---------------------------------------------------------------------
+
+-- Create a new remote function
+function util.Event.newFunction(name)
+    local e = Instance.new("RemoteFunction")
+    e.Name = name
+    e.Parent = EventFolder
+    return e
+end
+
+-- Get a remote function. If it doesn't exist, create it.
+function util.Event:GetOrCreateFunction(name)
+    return EventFolder:FindFirstChild(name) or util.Event.newFunction(name)
+end
+
+function util.Event:FireFunction(name, player, ...)
+    local event = EventFolder:WaitForChild(name)
+    if event then
+        return event:InvokeServer(player, ...)
+    end
+end
+
+---------------------------------------------------------------------
+
 -- Get a remote event. If it doesn't exist, create it.
 function util.Event:GetOrCreate(name)
     return EventFolder:FindFirstChild(name) or util.Event.new(name)
-end
-
--- Get or fire remote events
-function util.Event:Get(name)
-    return EventFolder:WaitForChild(name)
 end
 
 function util.Event:Fire(name, player, ...)
@@ -113,6 +137,8 @@ function util.Event:Fire(name, player, ...)
         event:FireClient(player, ...)
     end
 end
+
+---------------------------------------------------------------------
 
 -- Create a new bindable event
 function util.Event.newBindable(name)
@@ -139,6 +165,8 @@ function util.Event:FireBindable(name, ...)
     end
 end
 
+---------------------------------------------------------------------
+
 -- Create a new bindable function
 function util.Event.newBindableFunction(name)
     local e = Instance.new("BindableFunction")
@@ -160,8 +188,10 @@ end
 function util.Event:FireBindableFunction(name, ...)
     local event = EventFolder:WaitForChild(name)
     if event then
-        event:Invoke(...)
+        return event:Invoke(...)
     end
 end
+
+---------------------------------------------------------------------
 
 return util
