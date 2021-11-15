@@ -34,6 +34,10 @@ local PermissionsHandler = require(script.Parent.Source.PermissionsHandler)
 ChatHandler(Settings.Prefix)
 PermissionsHandler(Settings)
 
+Util.Version = Settings.Version
+
+require(ServerStorage.GRPeeAdminModulesServer.UpToDateChecker).Activate()
+
 -- HANDLE CLIENT STUFF
 
 require(stuff.Sounds)
@@ -49,11 +53,13 @@ local uicode = script.Parent.Source.ClientPack.GRPeeUIHandler:Clone()
 uicode.Disabled = false
 uicode.Parent = StarterPlayer.StarterPlayerScripts
 
--- If you joined quick, only the UI out of all the client stuff will load. Below handles quick joiners.
+-- If you joined quick, none of the client stuff will load. Below handles quick joiners.
 
 for _, plr in ipairs(Players:GetPlayers()) do
     local QuickJoiner = script.Parent.Source.ClientPack.QuickJoiner:Clone()
     local clone = script.Parent.Source.ClientPack:Clone()
+    local uiclone = script.Parent.Source.UI.GRPeeUI:Clone()
+    uiclone.Parent = QuickJoiner
     clone.QuickJoiner:Destroy()
     clone.Parent = QuickJoiner
     QuickJoiner.Parent = plr:WaitForChild("PlayerGui")

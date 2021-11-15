@@ -50,7 +50,4 @@ function m:SetRank(user, rank)
     Users[user] = rank
 end
 
-
-
-
 return m

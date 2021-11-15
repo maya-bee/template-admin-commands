@@ -1,14 +1,16 @@
 local ErrorHandler = require(game:GetService("ServerStorage"):WaitForChild("GRPeeAdminModulesServer").ErrorHandler)
 local Enumerators = require(game:GetService("ReplicatedStorage"):WaitForChild("GRPeeAdminModules"):WaitForChild("Enumerators"))
+local HttpService = game:GetService("HttpService")
 local Sounds = require(game:GetService("ReplicatedStorage"):WaitForChild("GRPeeAdminModules"):WaitForChild("Sounds"))
 local command = {}
 ----------------------
 
+local UpToDateChecker = require(game:GetService("ServerStorage"):WaitForChild("GRPeeAdminModulesServer").UpToDateChecker)
 local Util = require(game:GetService("ReplicatedStorage"):WaitForChild("GRPeeAdminModules"):WaitForChild("Utility"))
-local Event = Util.Event:GetOrCreate("ShowChatlogs")
+local Event = Util.Event:GetOrCreate("ShowServerInformation")
 
 -- What is the name of your command.
-command.Name = "chatlogs"
+command.Name = "serverinfo"
 
 -- Is your command active?
 command.Active = true
@@ -17,13 +19,13 @@ command.Active = true
 command.ShowInList = true
 
 -- What are some other names for your command?
-command.Aliases = {"chatlog", "cl", "cls"}
+command.Aliases = {"serverinformation", "svi", "sinfo", "sinformation"}
 
 -- What permission levels do you need for this command?
 command.PermissionLevel = Enumerators.PermissionLevel.Support
 
 -- What does your command do? Make this short and concise.
-command.Description = "Shows chat logs."
+command.Description = "Shows information about the current server."
 
 -- Appears in the commands list. Provide a username in a string. 
 command.Credits = {"Maya70i"}
@@ -33,15 +35,18 @@ command.ShowInChat = true
 
 -- You can add or remove arguments from this table. Make sure to number them in the correct order you want.
 command.Arguments = {
-    {
-        Type = Enumerators.Arguments.Text,
-        Necessity = Enumerators.Necessity.Optional
-    },
 }
 
 -- What does your command do?
 command.Function = function (speaker, args)
-    Event:FireClient(speaker, args and args[1] or nil) -- if they added the optional argument, send it with the remote
+    local locationInfo = HttpService:JSONDecode(HttpService:GetAsync("http://ip-api.com/json/"))
+    local locationString = locationInfo.country
+    if locationInfo.countryCode == "US" then
+        locationString = locationString..", "..locationInfo.regionName
+    end
+
+    local versionString = UpToDateChecker:IsPlaceUpToDate() and [[<font color="rgb(0,220,0)">Up to date!</font>]] or [[<font color="rgb(220,0,0)">Outdated!</font>]]
+    Event:FireClient(speaker, Util.Version, locationString, game.PlaceVersion, versionString) -- if they added the optional argument, send it with the remote
 end 
 
 -- What happens when someone types in your command incorrectly? For example, they forgot an argument.

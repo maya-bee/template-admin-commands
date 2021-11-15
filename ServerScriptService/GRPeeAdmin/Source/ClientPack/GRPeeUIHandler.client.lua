@@ -3,6 +3,7 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local Stats = game:GetService("Stats")
 local GroupService = game:GetService("GroupService")
 local Util = require(ReplicatedStorage:WaitForChild("GRPeeAdminModules"):WaitForChild("Utility"))
 local Enumerators = require(ReplicatedStorage:WaitForChild("GRPeeAdminModules"):WaitForChild("Enumerators"))
@@ -707,6 +708,72 @@ Events:Get("ShowChatlogs").OnClientEvent:Connect(function(optionalShowPhrase)
 
     Maid.Chatlogs.Entry.FocusLost:Connect(Search)
     Maid.Chatlogs.topBar.refreshButton.Activated:Connect(Search)
+end)
+
+-- Server information
+Events:Get("ShowServerInformation").OnClientEvent:Connect(function(adminVersion, serverLocation, placeVersion, placeUpToDate)
+    local InfoMaid = _maid.new()
+    local alive = true
+    InfoMaid.Thing = MainGui.ServerInformation:Clone()
+    InfoMaid.Thing.Parent = MainGui
+    InfoMaid.Thing.Visible = true
+    InfoMaid.Thing.Name = "clone"
+    MakeDraggableMoveParent(InfoMaid.Thing.topBar, InfoMaid.Thing.topBar.exitButton)
+
+    local frame = InfoMaid.Thing.information 
+    
+    task.spawn(function()
+        repeat
+            local t = time()
+            -- idk how the below works because i stole it off the devforum o_o
+            local seconds = math.floor(t % 60)
+            local minutes = math.floor(t % (60 * 60) / 60)
+            local hours = math.floor(t % (60 * 60 * 24) / (60 * 60))
+            local days = math.floor(t % (60 * 60 * 24 * 30) / (60 * 60 * 24))
+
+            if days < 10 then
+                days = "0" .. days
+            end
+
+            if hours < 10 then
+                hours = "0" .. hours
+            end
+
+            if minutes < 10 then
+                minutes = "0" .. minutes
+            end
+
+            if seconds < 10 then
+                seconds = "0" .. seconds
+            end
+
+            if not frame then
+                break
+            end
+
+            frame.serverUptime.Text = days .. ":" .. hours .. ":" .. minutes .. ":" .. seconds
+
+            task.wait()
+        until not alive or not frame
+    end)
+
+    task.spawn(function()
+        repeat
+            frame.memoryUsage.Text = tostring(Stats:GetTotalMemoryUsageMb()) .. " Mb"
+            task.wait(2)
+        until not alive or not frame
+    end)
+
+    frame.serverLocation.Text = serverLocation
+
+    frame.grpAdminVersion.Text = adminVersion
+
+    frame.serverVersion.Text = [[<font color="rgb(255,255,255)">v]] .. placeVersion .. [[</font> <font color="rgb(120,120,120)">-</font> ]] .. placeUpToDate
+
+    InfoMaid.Activated = InfoMaid.Thing.topBar.exitButton.Activated:Connect(function()
+        frame = nil
+        InfoMaid:DoCleaning()
+    end)
 end)
 
 -- Group list

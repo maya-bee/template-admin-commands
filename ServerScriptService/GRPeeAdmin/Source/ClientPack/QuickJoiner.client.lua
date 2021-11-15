@@ -15,5 +15,9 @@ if not pscripts:FindFirstChild("GRPeeUIHandler") then
     ClientPack.GRPeeUIHandler.Parent = pscripts
 end
 
+if not pgui:FindFirstChild("GRPeeUI") then
+    script:WaitForChild("GRPeeUI").Parent = plr.PlayerGui
+end
+
 task.wait()
 script:Destroy()

@@ -1,5 +1,6 @@
 local util = {}
 util.Event = {}
+util.Version = "not loaded"
 
 local Players = game:GetService("Players")
 
