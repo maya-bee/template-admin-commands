@@ -9,7 +9,7 @@ local Util = require(game:GetService("ReplicatedStorage"):WaitForChild("GRPeeAdm
 local Event = Util.Event:GetOrCreate("AlertPlayer")
 
 -- What is the name of your command.
-command.Name = "alert"
+command.Name = "removetools"
 
 -- Is your command active?
 command.Active = true
@@ -18,13 +18,13 @@ command.Active = true
 command.ShowInList = true
 
 -- What are some other names for your command?
-command.Aliases = {"a"}
+command.Aliases = {"rmt", "rmts", "removet", "rts", "wipetools", "cleartools"}
 
 -- What permission levels do you need for this command?
-command.PermissionLevel = Enumerators.PermissionLevel.Observer
+command.PermissionLevel = Enumerators.PermissionLevel.TrialMod
 
 -- What does your command do? Make this short and concise.
-command.Description = "Send a loud message to another user."
+command.Description = "Clears a player's backpack."
 
 -- Appears in the commands list. Provide a username in a string. 
 command.Credits = {"Maya70i"}
@@ -37,20 +37,18 @@ command.Arguments = {
     {
         Type = Enumerators.Arguments.UsernameInGame,
         Necessity = Enumerators.Necessity.Required
-    },
-    {
-        Type = Enumerators.Arguments.Text,
-        Necessity = Enumerators.Necessity.Optional
-    },
+    }
 }
 
 -- What does your command do?
 command.Function = function (speaker, args)
     local target = args[1]
-    local message = args[2]
 
-    Sounds:Play(target, Sounds.UI.Alert.Id, true)
-    Event:FireClient(target, message)
+    for _, thing in ipairs(target.Backpack:GetChildren()) do
+        if thing:IsA("Tool") then
+            thing:Destroy() -- idk what grp stores in player backpacks, so i'm not gonna use :ClearAllChildren()
+        end
+    end
 end 
 
 -- What happens when someone types in your command incorrectly? For example, they forgot an argument.

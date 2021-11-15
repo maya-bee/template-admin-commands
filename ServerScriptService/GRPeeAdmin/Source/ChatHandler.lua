@@ -6,12 +6,25 @@ local Prefix = ":"
 
 local ChatService = require(ServerScriptService:WaitForChild("ChatServiceRunner").ChatService)
 local CommandsMaster = require(script.Parent.CommandsMaster)
-local Util = require(game:GetService("ReplicatedStorage"):WaitForChild("GRPeeAdminModules"):WaitForChild("Utility"))
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TextService = game:GetService("TextService")
+local Util = require(ReplicatedStorage:WaitForChild("GRPeeAdminModules"):WaitForChild("Utility"))
+local Events = Util.Event
 local Enumerators = require(game:GetService("ReplicatedStorage"):WaitForChild("GRPeeAdminModules"):WaitForChild("Enumerators"))
 local PermissionsHandler = require(script.Parent.PermissionsHandler)
 CommandsMaster.Initialize()
 local Commands = CommandsMaster:GetCommands()
 
+local PlayerSpecificLogs = {}
+local debounce = {}
+
+local function ShallowCopy(original)
+    local copy = {}
+    for key, value in pairs(original) do
+        copy[key] = value
+    end
+    return copy
+end
 
 -- Check to see if the message has our prefix. Returns boolean.
 local function CheckForPrefix(message)
@@ -22,20 +35,90 @@ local function CheckForPrefix(message)
     return false
 end
 
---[[
+-- Detects chats and makes chatlogs work.
+local function UserChat(speakerName, message)
+    local HideOverride = false
+    if message:sub(1, 2) == "/e" then
+        HideOverride = true
+    end
 
-    Hey there! If you have a custom chat system that doesn't use Roblox's chat events
-    and are wondering how you can set this up, it's quite simple.
+    local uid = Players:FindFirstChild(speakerName)
 
-    Just make sure that the function below, OnChatted, runs with the following arguments:
+    local suc, response = pcall(function()
+        return Chat:FilterStringAsync(message, uid, uid)
+    end)
 
-        - The speaker who said the message. This is a Player object.
-        - The message itself. This should be unfiltered.
+    local DissectedMessage
 
-    Then, delete that function near the bottom of the script. It has a comment above it, so you'll
-    know which one. :)
+    if suc then
+        DissectedMessage = {
+            Speaker = speakerName;
+            UserId = uid;
+            Message = response;
+            Timestamp = DateTime.now();
+        }
+    else
+        DissectedMessage = {
+            Speaker = speakerName;
+            UserId = uid;
+            Message = "<i>(Couldn't filter)</i> " .. message;
+            Timestamp = DateTime.now();
+        }
+    end
 
-]]
+    if PlayerSpecificLogs[speakerName] == nil then
+        PlayerSpecificLogs[speakerName] = {}
+    end
+
+    table.insert(PlayerSpecificLogs[speakerName], 1, DissectedMessage)
+
+    return HideOverride    
+end
+
+Events:GetOrCreateFunction("RequestLogs").OnServerInvoke = function(user, phrase)
+    if table.find(debounce, user) then
+        return "stop"
+    end
+
+    if PermissionsHandler:GetRank(user.UserId) >= Enumerators.PermissionLevel.Support and phrase then
+        table.insert(debounce, user)
+
+        coroutine.wrap(function()
+            task.wait(2)
+            table.remove(debounce, table.find(debounce, user))
+        end)()
+
+        local FoundUser
+        for username, messages in pairs(PlayerSpecificLogs) do
+            if username:lower():sub(1, phrase:len()) == phrase:lower() then -- if username:sub(1, phrase-length) equals phrase then they were searching for a player
+                FoundUser = messages
+                break
+            end
+        end
+
+        if FoundUser then
+            return FoundUser
+        else -- user doesnt exist, they are likely searching a phrase.
+            local messages = {}
+            for player, messageLogs in pairs(PlayerSpecificLogs) do
+                for _, message in ipairs(messageLogs) do
+                    if message.Message:lower():match(phrase:lower()) then
+                        table.insert(messages, message)
+                    end
+                end
+            end
+
+            if #messages > 0 then
+                return messages
+            end
+
+            return nil -- if there are no messages, return nil
+        end
+    end
+
+    return nil
+end
+
 
 -- Detects for commands. Returns boolean if the message should be hidden from other players or not.
 local function OnChatted(speakerName, message)
@@ -85,9 +168,23 @@ local function OnChatted(speakerName, message)
     return HideOverride
 end
 
--- If you have a custom chat system, read the comment near the top of the script.
--- If your custom chat system doesn't use the default Roblox Lua ChatService, then delete the below.
+local function PlayerAdded(player)
+    PlayerSpecificLogs[player.Name] = {}
+end
+
+do
+    for _,plr in ipairs(Players:GetPlayers()) do
+        PlayerAdded(plr)
+    end
+end
+
+
+-- These two are different functions because thats easier to read.
+-- Theoritically, these two functions could be combined. But why would I do that. lol.
 ChatService:RegisterProcessCommandsFunction("__Template-Admin-Register-Commands__", OnChatted)
+ChatService:RegisterProcessCommandsFunction("__Chatlogs__", UserChat)
+
+Players.PlayerAdded:Connect(PlayerAdded)
 
 return function (prefix)
     Prefix = prefix

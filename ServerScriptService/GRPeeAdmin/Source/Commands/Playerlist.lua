@@ -6,7 +6,6 @@ local command = {}
 ----------------------
 
 local Sounds = require(game:GetService("ReplicatedStorage"):WaitForChild("GRPeeAdminModules"):WaitForChild("Sounds"))
-local Util = require(game:GetService("ReplicatedStorage"):WaitForChild("GRPeeAdminModules"):WaitForChild("Utility"))
 local Event = Util.Event:GetOrCreate("ShowPlayers")
 
 -- What is the name of your command.
@@ -22,7 +21,7 @@ command.ShowInList = true
 command.Aliases = {"plist", "playerlist", "pl", "playerl"}
 
 -- What permission levels do you need for this command?
-command.PermissionLevel = Enumerators.PermissionLevel.JrMod
+command.PermissionLevel = Enumerators.PermissionLevel.Support
 
 -- What does your command do? Make this short and concise.
 command.Description = "Shows list of players in game."

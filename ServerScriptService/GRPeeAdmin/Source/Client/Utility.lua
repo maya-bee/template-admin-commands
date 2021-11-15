@@ -89,6 +89,8 @@ function util:GetUserIdCache()
     return UserIdCache
 end
 
+---------------------------------------------------------------------
+
 -- Create a new remote event
 function util.Event.new(name)
     local e = Instance.new("RemoteEvent")
@@ -117,10 +119,10 @@ function util.Event:GetOrCreateFunction(name)
     return EventFolder:FindFirstChild(name) or util.Event.newFunction(name)
 end
 
-function util.Event:FireFunction(name, player, ...)
+function util.Event:FireFunction(name, ...)
     local event = EventFolder:WaitForChild(name)
     if event then
-        return event:InvokeServer(player, ...)
+        return event:InvokeServer(...)
     end
 end
 

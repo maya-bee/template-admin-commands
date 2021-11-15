@@ -1,15 +1,15 @@
 local ErrorHandler = require(game:GetService("ServerStorage"):WaitForChild("GRPeeAdminModulesServer").ErrorHandler)
 local Enumerators = require(game:GetService("ReplicatedStorage"):WaitForChild("GRPeeAdminModules"):WaitForChild("Enumerators"))
 local Sounds = require(game:GetService("ReplicatedStorage"):WaitForChild("GRPeeAdminModules"):WaitForChild("Sounds"))
+local Util = require(game:GetService("ReplicatedStorage"):WaitForChild("GRPeeAdminModules"):WaitForChild("Utility"))
 local command = {}
 ----------------------
 
 local Sounds = require(game:GetService("ReplicatedStorage"):WaitForChild("GRPeeAdminModules"):WaitForChild("Sounds"))
-local Util = require(game:GetService("ReplicatedStorage"):WaitForChild("GRPeeAdminModules"):WaitForChild("Utility"))
-local Event = Util.Event:GetOrCreate("AlertPlayer")
+local Event = Util.Event:GetOrCreate("ShowGroups")
 
 -- What is the name of your command.
-command.Name = "alert"
+command.Name = "groups"
 
 -- Is your command active?
 command.Active = true
@@ -18,13 +18,13 @@ command.Active = true
 command.ShowInList = true
 
 -- What are some other names for your command?
-command.Aliases = {"a"}
+command.Aliases = {"gps", "groupslist", "grouplist"}
 
 -- What permission levels do you need for this command?
-command.PermissionLevel = Enumerators.PermissionLevel.Observer
+command.PermissionLevel = Enumerators.PermissionLevel.Support
 
 -- What does your command do? Make this short and concise.
-command.Description = "Send a loud message to another user."
+command.Description = "Shows list of groups a player is in."
 
 -- Appears in the commands list. Provide a username in a string. 
 command.Credits = {"Maya70i"}
@@ -38,19 +38,11 @@ command.Arguments = {
         Type = Enumerators.Arguments.UsernameInGame,
         Necessity = Enumerators.Necessity.Required
     },
-    {
-        Type = Enumerators.Arguments.Text,
-        Necessity = Enumerators.Necessity.Optional
-    },
 }
 
 -- What does your command do?
 command.Function = function (speaker, args)
-    local target = args[1]
-    local message = args[2]
-
-    Sounds:Play(target, Sounds.UI.Alert.Id, true)
-    Event:FireClient(target, message)
+    Event:FireClient(speaker, args[1])
 end 
 
 -- What happens when someone types in your command incorrectly? For example, they forgot an argument.

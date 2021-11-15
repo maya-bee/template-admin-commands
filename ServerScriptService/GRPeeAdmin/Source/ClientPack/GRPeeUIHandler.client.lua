@@ -3,6 +3,7 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local GroupService = game:GetService("GroupService")
 local Util = require(ReplicatedStorage:WaitForChild("GRPeeAdminModules"):WaitForChild("Utility"))
 local Enumerators = require(ReplicatedStorage:WaitForChild("GRPeeAdminModules"):WaitForChild("Enumerators"))
 local _maid = require(ReplicatedStorage:WaitForChild("GRPeeAdminModules"):WaitForChild("Maid"))
@@ -251,7 +252,7 @@ end
 
 Events:Get("Notification").OnClientEvent:Connect(SendNotification)
 
--- More general stuff
+-- More command panel
 local function OpenCommandPanel(presetFields)
     local Commands = Events:FireFunction("GetCommands")
     local CmdMaid = _maid.new()
@@ -553,7 +554,7 @@ local function OpenCommandPanel(presetFields)
             ArgMaid[i].Parent = holder.arguments
             ArgMaid[i].Visible = true
 
-            if arg.Necessity == Enumerators.Necessity.Required then
+            if arg.Necessity == Enumerators.Necessity.Optional then
                 ArgMaid[i].BackgroundColor3 = Color3.fromRGB(170, 255, 255)
             end
         end
@@ -563,7 +564,7 @@ local function OpenCommandPanel(presetFields)
         holder.pTitle.Visible = playerFieldAffectsAnArgument
 
         if playerFieldAffectsAnArgument then
-            argumentField[1] = PlayerField.Name
+            argumentField[1] = PlayerField and PlayerField.Name or nil
         end
 
         OnArgumentFieldChanged()
@@ -642,6 +643,110 @@ local function OpenCommandPanel(presetFields)
     end)
 end
 
+Events:Get("CommandPanel").OnClientEvent:Connect(OpenCommandPanel)
+
+-- Chatlogs
+Events:Get("ShowChatlogs").OnClientEvent:Connect(function(optionalShowPhrase)
+    local Maid = _maid.new()
+    local LogMaid = _maid.new()
+    Maid.Chatlogs = MainGui.Chatlogs:Clone()
+    Maid.Chatlogs.Parent = MainGui
+    Maid.Chatlogs.Visible = true
+    Maid.Chatlogs.Name = "clone"
+    MakeDraggableMoveParent(Maid.Chatlogs.topBar, Maid.Chatlogs.topBar.exitButton, Maid.Chatlogs.topBar.refreshButton)
+
+    local function Search()
+        local text = Maid.Chatlogs.Entry.Text
+        if text ~= "" and not text:match("^%s*$") then -- if there is a message there
+            LogMaid:DoCleaning()
+            local Messages = Events:FireFunction("RequestLogs", text)
+
+            if Messages == "stop" then
+                SendNotification("You're doing this too fast!", 3)
+                return
+            end
+
+            if Messages then
+                SendNotification("Loading chatlogs...", 2)
+                for i, msg in ipairs(Messages) do
+                    
+                    LogMaid["message-" .. i] = Maid.Chatlogs.logs.MessageTemplate:Clone()
+                    LogMaid["message-" .. i].Text = "[" .. i .. "] " .. msg.Speaker .. ": " .. msg.Message
+                    LogMaid["message-" .. i].Visible = true
+                    LogMaid["message-" .. i].Parent = Maid.Chatlogs.logs
+                    LogMaid["message-" .. i].Size = UDim2.new(0.98, 0, 0, math.max(20, LogMaid["message-" .. i].TextBounds.Y))
+                    
+                    LogMaid["message-" .. i].MouseEnter:Connect(function()
+                        Maid.Chatlogs.MessageBox.Text = LogMaid["message-" .. i].Text
+                    end)
+                    
+                    LogMaid["message-" .. i].MouseLeave:Connect(function()
+                        Maid.Chatlogs.MessageBox.Text = ""
+                    end)
+                    
+                    LogMaid["message-" .. i].TouchTap:Connect(function()
+                        Maid.Chatlogs.MessageBox.Text = LogMaid["message-" .. i].Text
+                    end)
+                end
+                SendNotification("Chatlogs loaded!", 2)
+            else
+                SendNotification("Could not fetch chatlogs for user/phrase \"" .. text .. "\"", 4)
+            end
+        end
+    end
+
+    if optionalShowPhrase then
+        Maid.Chatlogs.Entry.Text = optionalShowPhrase
+        Search()
+    end
+
+    Maid.Chatlogs.topBar.exitButton.Activated:Connect(function()
+        LogMaid:DoCleaning() 
+        Maid:DoCleaning()
+    end)
+
+    Maid.Chatlogs.Entry.FocusLost:Connect(Search)
+    Maid.Chatlogs.topBar.refreshButton.Activated:Connect(Search)
+end)
+
+-- Group list
+local SIZE = Vector2.new(1, 0.15) -- size of uigrid layout
+
+Events:Get("ShowGroups").OnClientEvent:Connect(function(target)
+    local GroupsMaid = _maid.new()
+    GroupsMaid.Thing = MainGui.GroupsList:Clone()
+    GroupsMaid.Thing.Parent = MainGui
+    GroupsMaid.Thing.Visible = true
+    GroupsMaid.Thing.Name = "clone"
+    GroupsMaid.Thing.topBar.title.Text = target.Name .. "'s Groups"
+    MakeDraggableMoveParent(GroupsMaid.Thing.topBar, GroupsMaid.Thing.topBar.exitButton)
+
+    for i, group in ipairs(GroupService:GetGroupsAsync(target.UserId)) do
+        GroupsMaid[i] = GroupsMaid.Thing.Frame.Template:Clone()
+        GroupsMaid[i].Parent = GroupsMaid.Thing.Frame
+        GroupsMaid[i].Visible = true
+        GroupsMaid[i].Name = "clone"
+        GroupsMaid[i].Emblem.Image = group.EmblemUrl
+        GroupsMaid[i].GroupName.Text = group.Name
+        GroupsMaid[i].RankName.Text = group.Role
+    end
+    
+	GroupsMaid.Thing.Frame.UIGridLayout.CellSize = UDim2.new(0, SIZE.X * GroupsMaid.Thing.Frame.AbsoluteSize.X, 0, SIZE.Y * GroupsMaid.Thing.Frame.AbsoluteSize.Y)
+
+    GroupsMaid.Event = MainGui:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+        local ps = GroupsMaid.Thing.Frame.AbsoluteSize
+	    GroupsMaid.Thing.Frame.UIGridLayout.CellSize = UDim2.new(0, SIZE.X * ps.X, 0, SIZE.Y * ps.Y)
+    end)
+
+    GroupsMaid.Thing.Frame.UIGridLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function ()
+        GroupsMaid.Thing.Frame.CanvasSize = UDim2.new(0, 0, 0, GroupsMaid.Thing.Frame.UIGridLayout.AbsoluteContentSize.Y)
+    end)
+
+    GroupsMaid.Thing.topBar.exitButton.Activated:Connect(function()
+        GroupsMaid:DoCleaning()
+    end)
+end)
+
 -- Alerts
 
 Events:Get("AlertPlayer").OnClientEvent:Connect(function(msg)
@@ -669,7 +774,7 @@ Events:Get("AlertPlayer").OnClientEvent:Connect(function(msg)
 end)
 
 -- Player list
-local SIZE = Vector2.new(1, 0.15) -- size of uigrid layout
+
 
 Events:Get("ShowPlayers").OnClientEvent:Connect(function()
     local PlayerlistMaid = _maid.new()
@@ -700,10 +805,6 @@ Events:Get("ShowPlayers").OnClientEvent:Connect(function()
 
     PlayerlistMaid.Thing.Frame.UIGridLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function ()
         PlayerlistMaid.Thing.Frame.CanvasSize = UDim2.new(0, 0, 0, PlayerlistMaid.Thing.Frame.UIGridLayout.AbsoluteContentSize.Y)
-    end)
-
-    PlayerlistMaid.Thing.topBar.exitButton.Activated:Connect(function()
-        PlayerlistMaid:DoCleaning()
     end)
 
     for _, v in ipairs(Players:GetPlayers()) do
